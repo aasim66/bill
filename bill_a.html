@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Billing App</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { font-family: Arial, sans-serif; padding: 10px; }
+        .tab { display: inline-block; margin: 0 10px; cursor: pointer; padding: 10px 20px; background-color: #ccc; }
+        .tab.active { background-color: #0bbbbb; color: white; }
+        .orderlist { margin-top: 20px; }
+        .orderitem { border-bottom: 1px solid #ccc; padding: 5px 0; }
+        .total { font-size: 24px; font-weight: bold; text-align: right; margin-top: 20px; }
+        .buttons { margin-top: 20px; }
+        button { padding: 10px 20px; margin: 5px; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .product-card img {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+            border-radius: 0.5rem;
+        }
+        .product-card {
+            background-color: #0bbbbb;
+            color: white;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            text-align: center;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .product-card:hover {
+            transform: scale(1.05);
+        }
+    </style>
+    <script>
+        // Define products in JavaScript
+        let productsList = [
+            { name: 'Idly', price: 25, image: 'images/idly.png' },
+            { name: 'Dosa', price: 35, image: 'images/anil-sharma-S6WyKp5jdkQ-unsplash.jpg' },
+            { name: 'Pongal', price: 30, image: 'images/pongal.png' },
+            { name: 'Upma', price: 30, image: 'images/upma.png' },
+            { name: 'Poori', price: 35, image: 'images/poori.png' },
+            { name: 'Masal Dosa', price: 40, image: 'images/delicious-indian-dosa-composition.jpg' },
+        ];
+
+        let orderList = [];
+
+        function addToOrder(name, price) {
+            orderList.push({ name, price });
+            renderOrder();
+        }
+
+        function renderOrder() {
+            let orderDiv = document.getElementById('orderlist');
+            let total = 0;
+            orderDiv.innerHTML = '';
+            orderList.forEach(item => {
+                total += item.price;
+                orderDiv.innerHTML += `<div class="orderitem">${item.name} - ₹${item.price}</div>`;
+            });
+            document.getElementById('total').innerText = 'Total: ₹' + total;
+        }
+
+        function clearOrder() {
+            orderList = [];
+            renderOrder();
+        }
+
+        function switchTab(tabId) {
+            const tabs = document.querySelectorAll('.tab-content');
+            tabs.forEach(tab => tab.classList.remove('active'));
+            const tabButtons = document.querySelectorAll('.tab');
+            tabButtons.forEach(button => button.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            document.querySelector(`.tab[data-tab="${tabId}"]`).classList.add('active');
+        }
+
+        // Add Product
+        function previewImage(input) {
+            const preview = document.getElementById('imagePreview');
+            const file = input.files[0];
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                preview.src = e.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function addNewProduct() {
+            const name = document.getElementById('newProductName').value;
+            const price = parseFloat(document.getElementById('newProductPrice').value);
+            const imgSrc = document.getElementById('imagePreview').src;
+
+            if (name && price && imgSrc) {
+                const productGrid = document.getElementById('productGrid');
+                const newProduct = document.createElement('div');
+                newProduct.classList.add('col-6', 'col-md-4', 'col-lg-3');
+                newProduct.innerHTML = `
+                    <div class="product-card" onclick="addToOrder('${name}', ${price})">
+                        <img src="${imgSrc}" alt="${name}">
+                        <div class="mt-2">${name}<br><strong>₹${price}</strong></div>
+                    </div>
+                `;
+                productGrid.appendChild(newProduct);
+
+                // Add to productsList for consistency
+                productsList.push({ name, price, image: imgSrc });
+
+                // Clear form
+                document.getElementById('newProductName').value = '';
+                document.getElementById('newProductPrice').value = '';
+                document.getElementById('imagePreview').src = '';
+
+                // Close modal
+                const myModal = bootstrap.Modal.getInstance(document.getElementById('addProductModal'));
+                myModal.hide();
+            } else {
+                alert('Please fill all fields and select an image!');
+            }
+        }
+
+        // Initial render of products
+        function renderProducts() {
+            const productGrid = document.getElementById('productGrid');
+            productGrid.innerHTML = '';
+            productsList.forEach(p => {
+                const productDiv = document.createElement('div');
+                productDiv.classList.add('col-6', 'col-md-4', 'col-lg-3');
+                productDiv.innerHTML = `
+                    <div class="product-card" onclick="addToOrder('${p.name}', ${p.price})">
+                        <img src="${p.image}" alt="${p.name}">
+                        <div class="mt-2">${p.name}<br><strong>₹${p.price}</strong></div>
+                    </div>
+                `;
+                productGrid.appendChild(productDiv);
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', renderProducts);
+    </script>
+</head>
+
+<body>
+
+<h2 class="mb-3">Billing App</h2>
+
+<!-- Tabs -->
+<div class="mb-3">
+    <div class="tab active" data-tab="products" onclick="switchTab('products')">Products</div>
+    <div class="tab" data-tab="order" onclick="switchTab('order')">Order</div>
+    <div class="tab" data-tab="payment" onclick="switchTab('payment')">Payment</div>
+</div>
+
+<!-- Products Tab -->
+<div id="products" class="tab-content active">
+    <h3 class="mt-3 mb-3">Products</h3>
+    <button class="btn btn-success mb-3" data-bs-toggle="modal" data-bs-target="#addProductModal">+ Add Product</button>
+    <div class="row g-3" id="productGrid">
+        <!-- Products will be rendered here dynamically -->
+    </div>
+</div>
+
+<!-- Order Tab -->
+<div id="order" class="tab-content">
+    <h3>Order List</h3>
+    <div class="orderlist" id="orderlist"></div>
+    <div class="total" id="total">Total: ₹0</div>
+    <div class="buttons">
+        <button class="btn btn-danger" onclick="clearOrder()">Clear</button>
+        <button class="btn btn-primary" onclick="alert('Printing...')">Print</button>
+        <button class="btn btn-success" onclick="alert('Proceed to Payment')">Pay</button>
+    </div>
+</div>
+
+<!-- Payment Tab -->
+<div id="payment" class="tab-content">
+    <h3>Payment</h3>
+    <p>Choose your payment method.</p>
+    <button class="btn btn-warning" onclick="alert('Paying with Card')">Credit Card</button>
+    <button class="btn btn-info" onclick="alert('Paying with UPI')">UPI</button>
+</div>
+
+<!-- Add Product Modal -->
+<div class="modal fade" id="addProductModal" tabindex="-1" aria-labelledby="addProductModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-5" id="addProductModalLabel">Add New Product</h1>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label>Product Name</label>
+                    <input type="text" class="form-control" id="newProductName">
+                </div>
+                <div class="mb-3">
+                    <label>Product Price</label>
+                    <input type="number" class="form-control" id="newProductPrice">
+                </div>
+                <div class="mb-3">
+                    <label>Upload Image</label>
+                    <input type="file" class="form-control" onchange="previewImage(this)">
+                    <img id="imagePreview" src="" class="img-fluid mt-2" style="max-height: 150px;">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-success" onclick="addNewProduct()">Add Product</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
