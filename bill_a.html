@@ -23,18 +23,27 @@
             object-fit: cover;
             border-radius: 0.5rem;
         }
+        
+
         .product-card {
-            background-color: #0bbbbb;
-            color: white;
-            border-radius: 0.5rem;
-            padding: 1rem;
-            text-align: center;
-            cursor: pointer;
-            transition: transform 0.2s;
-        }
-        .product-card:hover {
-            transform: scale(1.05);
-        }
+    background-color: #0bbbbb;
+    color: white;
+    border-radius: 0.5rem;
+    padding: 1rem;
+    text-align: center;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+    user-select: none; /* Prevent text selection on tap */
+}
+.product-card:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+.product-card:active {
+    transform: scale(0.95);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
     </style>
     <script>
         // Define products in JavaScript
@@ -43,7 +52,7 @@
             { name: 'Dosa', price: 35, image: 'images/anil-sharma-S6WyKp5jdkQ-unsplash.jpg' },
             { name: 'Pongal', price: 30, image: 'images/pongal.png' },
             { name: 'Upma', price: 30, image: 'images/upma.png' },
-            { name: 'Poori', price: 35, image: 'images/poori.png' },
+            { name: 'Poori', price: 35, image: 'images/Poori.png' },
             { name: 'Masal Dosa', price: 40, image: 'images/delicious-indian-dosa-composition.jpg' },
         ];
 
