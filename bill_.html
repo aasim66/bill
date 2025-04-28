@@ -14,6 +14,11 @@
 <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 
     <style>
+        /* fallback */
+
+        
+    
+
         :root {
     --bs-breakpoint-xs: 0;
     --bs-breakpoint-sm: 576px;
@@ -282,7 +287,22 @@
 }
 
 @media print {
-    /* Hide all unnecessary elements */
+    /* Hide everything except product lines */
+    @page {
+        size: 58mm auto; /* Small mobile printer paper */
+        margin: 5mm;
+    }
+
+    body, html {
+        margin: 0;
+        padding: 0;
+        background: #fff;
+        font-family: 'Courier New', Courier, monospace;
+        font-size: 11pt;
+        color: #000;
+    }
+
+    /* Hide unnecessary elements */
     .all_he,
     .mobile-nav,
     .mb-3,
@@ -296,80 +316,8 @@
     .tab,
     .buttons,
     .product-card,
-    .favorite-icon {
-        display: none !important;
-    }
-
-    /* Ensure the order tab is visible and styled */
-    #order {
-        display: block !important;
-        margin: 20px;
-        font-family: 'Courier New', Courier, monospace; /* Monospace for receipt look */
-        font-size: 12pt;
-        color: #000;
-        width: 100%;
-        max-width: 300px; /* Standard receipt width */
-        margin-left: auto;
-        margin-right: auto;
-    }
-
-    /* Show and style the hotel name */
-    .h4_hotal_name {
-        display: block !important;
-        text-align: center;
-        font-size: 16pt;
-        font-weight: bold;
-        margin-bottom: 10px;
-        text-transform: uppercase;
-    }
-
-    /* Style the order list table */
-    .orderlist {
-        width: 100%;
-        border-collapse: collapse;
-        margin-top: 10px;
-    }
-
-    .orderlist table {
-        width: 100%;
-        border: 1px solid #000;
-    }
-
-    .orderlist th,
-    .orderlist td {
-        border: 1px solid #000;
-        padding: 5px;
-        text-align: left;
-        font-size: 10pt;
-    }
-
-    .orderlist th {
-        background-color: #f0f0f0;
-        font-weight: bold;
-    }
-
-    /* Hide the actions column */
-    .action-buttons {
-        display: none !important;
-    }
-
-    /* Style the total */
-    .total {
-        text-align: right;
-        font-size: 14pt;
-        font-weight: bold;
-        margin-top: 10px;
-        border-top: 2px dashed #000;
-        padding-top: 5px;
-    }
-
-    /* Ensure only the order tab content is printed */
-    body {
-        margin: 0;
-        padding: 0;
-        background: #fff;
-    }
-
+    .favorite-icon,
+    .action-buttons,
     #products,
     #favorites,
     #payment,
@@ -380,7 +328,62 @@
         display: none !important;
     }
 
-    /* Add a footer for the receipt */
+    /* Keep only the order */
+    #order {
+        display: block !important;
+        width: 100%;
+        max-width: 300px;
+        margin: 20px auto;
+    }
+
+    /* Hotel Name */
+    .h4_hotal_name {
+        display: block !important;
+        text-align: center;
+        font-size: 16pt;
+        font-weight: bold;
+        text-transform: uppercase;
+        margin-bottom: 10px;
+    }
+
+    /* Product Lines */
+    .orderlist {
+        width: 100%;
+        margin-top: 10px;
+    }
+
+    .orderlist table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .orderlist td {
+        border: none;
+        padding: 5px 0;
+        font-size: 11pt;
+        text-align: left;
+    }
+
+    .orderlist tr {
+        border-bottom: 1px solid #000; /* Only HR lines between products */
+    }
+
+    /* Remove table headers */
+    .orderlist th {
+        display: none;
+    }
+
+    /* Total Section */
+    .total {
+        text-align: right;
+        font-size: 14pt;
+        font-weight: bold;
+        margin-top: 10px;
+        border-top: 2px dashed #000;
+        padding-top: 5px;
+    }
+
+    /* Footer */
     .receipt-footer {
         text-align: center;
         font-size: 10pt;
@@ -389,6 +392,7 @@
         padding-top: 5px;
     }
 }
+
 .h4_hotal_name{
     display: none;
 }
@@ -455,7 +459,8 @@
         <div class="buttons mt-3" id="button_are_oreder">
             <button class="btn btn-danger" onclick="clearOrder()">Clear</button>
             <button class="btn btn-primary" onclick="print()">Print</button>
-            <button class="btn btn-success" onclick="side_Button_to()">Pay</button>
+            <button class="btn btn-success" onclick="saveOrderToSheet()">Pay</button>
+
         </div>
     </div>
 
@@ -853,7 +858,12 @@
             renderFavorites();
             updateOrderCount();
         });
-    </script>
+
+
+
+
+
+</script>
 </body>
 </html>
 
