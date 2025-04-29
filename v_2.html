@@ -1,0 +1,909 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <head>
+        <meta charset="UTF-8">
+        <title>Billing App</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+    
+        <!-- Bootstrap CSS -->
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+        <!-- Font Awesome (latest version for icons) -->
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    
+        <!-- Google Material Icons -->
+        <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    </head>
+    
+    <style>
+        /* fallback */
+i{
+    cursor: pointer;
+}
+        
+    
+
+        :root {
+    --bs-breakpoint-xs: 0;
+    --bs-breakpoint-sm: 576px;
+    --bs-breakpoint-md: 768px;
+    --bs-breakpoint-lg: 992px;
+    --bs-breakpoint-xl: 1200px;
+    --bs-breakpoint-xxl: 1400px;
+}
+
+        body { font-family: Arial, sans-serif; padding: 10px; }
+        .tab { display: inline-block; margin: 0 10px; cursor: pointer; padding: 10px 20px; background-color: #ccc; }
+        .tab.active { background-color: #0bbbbb; color: white; }
+        .orderlist { margin-top: 20px; }
+        .total { font-size: 24px; font-weight: bold; text-align: right; margin-top: 20px; }
+        .buttons { margin-top: 20px; }
+        button { padding: 10px 20px; margin: 5px; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        .product-card img {
+            width: 150px;
+            height: 150px;
+            object-fit: cover;
+            border-radius: 50%;
+            margin: 0 auto;
+            display: block;
+        }
+        .product-card {
+            background-color: #0bbbbb;
+            color: white;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            text-align: center;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            user-select: none;
+            position: relative;
+        }
+        .product-card:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+        .product-card:active {
+            transform: scale(0.95);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+        }
+        .orderitem {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+        }
+        .favorite-icon {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-size: 24px;
+            cursor: pointer;
+            color: #fff;
+        }
+        .favorite-icon.favorited {
+            color: #ffd700; /* Gold color for favorited items */
+        }
+
+        /* Hamburger Menu */
+        .hamburger {
+            font-size: 24px;
+            cursor: pointer;
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            z-index: 1100;
+            display: block;
+        }
+
+        /* Popup */
+        .popup {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            width: 90%;
+            max-width: 350px;
+            background-color: white;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            padding: 20px;
+            z-index: 1000;
+            opacity: 0;
+            transition: transform 0.3s ease, opacity 0.3s ease;
+        }
+        .popup.active {
+            transform: translate(-50%, -50%) scale(1);
+            opacity: 1;
+        }
+        .popup .close-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: none;
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+        }
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            z-index: 999;
+        }
+        .overlay.active {
+            display: block;
+        }
+
+        /* Mobile Navigation Bar */
+        .mobile-nav {
+            display: none;
+            background-color: #f8f9fa;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-bottom: 1px solid #ddd;
+        }
+        .mobile-nav-item {
+            display: inline-block;
+            padding: 10px 15px;
+            cursor: pointer;
+            font-size: 16px;
+            color: #333;
+        }
+        .mobile-nav-item.active {
+            background-color: #0bbbbb;
+            color: white;
+            border-radius: 5px;
+        }
+        .mobile-nav-item:hover {
+            color: #000000;
+        }
+
+        /* Mobile Sidebar */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: -250px;
+            width: 250px;
+            height: 100%;
+            background-color: #0bbbbb;
+            color: white;
+            padding: 20px;
+            box-shadow: 2px 0 12px rgba(0, 0, 0, 0.2);
+            z-index: 1200;
+            transition: left 0.3s ease;
+        }
+        .sidebar.active {
+            left: 0;
+        }
+        .sidebar .close-btn {
+            font-size: 24px;
+            cursor: pointer;
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: none;
+            border: none;
+            color: white;
+        }
+        .sidebar a {
+            display: flex;
+            align-items: center;
+            margin: 20px 0;
+            color: white;
+            text-decoration: none;
+            font-size: 18px;
+        }
+        .sidebar a.active {
+            background-color: #088888;
+            padding: 10px;
+            border-radius: 5px;
+        }
+        .sidebar a:hover {
+            text-decoration: underline;
+        }
+        .sidebar hr {
+            border-top: 1px solid #ffffff44;
+        }
+        .sidebar .badge {
+            margin-left: 10px;
+            font-size: 12px;
+        }
+
+        @media (max-width: 600px) {
+            .hamburger {
+                display: block;
+            }
+            .tab {
+                display: none; /* Hide tabs on mobile */
+            }
+            .mobile-nav {
+                display: block; /* Show mobile nav */
+            }
+            .product-card img {
+                width: 100px;
+                height: 100px;
+            }
+            .product-card {
+                padding: 0.5rem;
+                font-size: 14px;
+            }
+            .total {
+                font-size: 20px;
+            }
+            .add-product-btn {
+                position: fixed;
+                bottom: 20px;
+                right: 20px;
+                border-radius: 50%;
+                width: 50px;
+                height: 50px;
+                font-size: 24px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                z-index: 1000;
+            }
+            #orderButton {
+                border: none;
+                background-color: #0bbbbb;
+                color: white;
+                border-radius: 5px;
+                height: 40px;
+            }
+
+            .or {
+                border: none;
+                color: white;
+                border-radius: 5px;
+                height: 40px;
+            }
+
+        }
+        #orderButton {
+            border: none;
+        }
+
+        #he {
+                margin-left: 30px;
+        }
+        .action-buttons {
+            display: flex;
+            gap: 5px;
+        }
+        .action-buttons button {
+            padding: 5px 10px;
+            font-size: 14px;
+        }
+
+        #far-fa{
+            cursor: pointer;
+            display: none;
+        }
+        #button-side-bar-so-make-in-aasim{
+    width: 200px;
+    height: auto;
+}
+
+@media print {
+    /* Hide everything except product lines */
+    @page {
+        size: 58mm auto; /* Small mobile printer paper */
+        margin: 5mm;
+    }
+
+    body, html {
+        margin: 0;
+        padding: 0;
+        background: #fff;
+        font-family: 'Courier New', Courier, monospace;
+        font-size: 11pt;
+        color: #000;
+    }
+
+    /* Hide unnecessary elements */
+    .all_he,
+    .mobile-nav,
+    .mb-3,
+    .actopns,
+    #button_are_oreder,
+    .hamburger,
+    .sidebar,
+    .overlay,
+    .popup,
+    .mobile-nav-item,
+    .tab,
+    .buttons,
+    .product-card,
+    .favorite-icon,
+    .action-buttons,
+    #products,
+    #favorites,
+    #payment,
+    #popup,
+    #editPopup,
+    #popup_t,
+    .overlay_two {
+        display: none !important;
+    }
+
+    /* Keep only the order */
+    #order {
+        display: block !important;
+        width: 100%;
+        max-width: 300px;
+        margin: 20px auto;
+    }
+
+    /* Hotel Name */
+    .h4_hotal_name {
+        display: block !important;
+        text-align: center;
+        font-size: 16pt;
+        font-weight: bold;
+        text-transform: uppercase;
+        margin-bottom: 10px;
+    }
+
+    /* Product Lines */
+    .orderlist {
+        width: 100%;
+        margin-top: 10px;
+    }
+
+    .orderlist table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .orderlist td {
+        border: none;
+        padding: 5px 0;
+        font-size: 11pt;
+        text-align: left;
+    }
+
+    .orderlist tr {
+        border-bottom: 1px solid #000; /* Only HR lines between products */
+    }
+
+    /* Remove table headers */
+    .orderlist th {
+        display: none;
+    }
+
+    /* Total Section */
+    .total {
+        text-align: right;
+        font-size: 14pt;
+        font-weight: bold;
+        margin-top: 10px;
+        border-top: 2px dashed #000;
+        padding-top: 5px;
+    }
+
+    /* Footer */
+    .receipt-footer {
+        text-align: center;
+        font-size: 10pt;
+        margin-top: 10px;
+        border-top: 1px dashed #000;
+        padding-top: 5px;
+    }
+}
+
+.h4_hotal_name{
+    display: none;
+}
+    </style>
+</head>
+
+
+<body>
+    <!-- Hamburger Menu -->
+    <div class="all_he">
+        <h2 class="mb-3" id="he">
+            <div class="hamburger" onclick="toggleSidebar()">☰</div> Billing App
+        </h2>
+    </div>
+
+    <!-- Sidebar for Mobile -->
+    <div id="sidebar" class="sidebar">
+        <button class="close-btn" onclick="toggleSidebar()">×</button>
+        <h4>Menu</h4>
+        <hr>
+        <button type="button"  class ="btn btn-success" id ="button-side-bar-so-make-in-aasim" onclick="side_Button()">Add Item</button>
+        <button type="button" class="btn btn-success" id ="button-side-bar-so-make-in-aasim" onclick="switchTab('products'); window.location.reload()">Pos</button>
+        <button type="button" class="btn btn-success" id ="button-side-bar-so-make-in-aasim" onclick="window.location.href='report_vive.html' ">Report</button>
+        <button type="button" class="btn btn-success" id ="button-side-bar-so-make-in-aasim" onclick="window.location.href='expense.html' ">expense</button>
+
+    </div>
+
+    <!-- Overlay for Sidebar and Popup -->
+    <div id="overlay" class="overlay" onclick="toggleSidebar(); togglePopup(); toggleEditPopup();"></div>
+
+    <!-- Mobile Navigation Bar -->
+    <div class="mobile-nav">
+        <span class="mobile-nav-item active" data-tab="products" onclick="switchTab('products')">Products</span>
+        <span class="or">
+            <button id="orderButton" data-tab="order" class="position-relative mb-3" onclick="switchTab('order')">
+                Order
+                <span id="orderCount2" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">0</span>
+            </button>
+        </span>
+        <span class="mobile-nav-item" data-tab="favorites" onclick="switchTab('favorites')">My Favorites</span>
+    </div>
+
+    <!-- Desktop Tabs -->
+    <div class="mb-3">
+        <div class="tab active" data-tab="products" onclick="switchTab('products')">Products</div>
+        <button id="orderButton" class="tab position-relative mb-3" data-tab="order" onclick="switchTab('order')">
+            Order
+            <span id="orderCount" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">0</span>
+        </button>
+        <div class="tab" data-tab="favorites" onclick="switchTab('favorites')">My Favorites</div>
+    </div>
+
+    <!-- Products Tab -->
+    <div id="products" class="tab-content active">
+        <h3 class="mt-3 mb-3">Products</h3>
+        <div class="row g-3" id="productGrid"></div>
+    </div>
+
+    <!-- Order Tab -->
+    <div id="order" class="tab-content">
+        <h4 class="h4_hotal_name">hotal aasim</h4>
+        <h3>Order List</h3>
+        <ul class="list-group orderlist" id="orderlist"></ul>
+        <hr>
+        <div class="total mt-3" id="total">Total: ₹0</div>
+        <div class="buttons mt-3" id="button_are_oreder">
+            <button class="btn btn-danger" onclick="clearOrder()">Clear</button>
+            <button class="btn btn-primary" onclick="print()">Print</button>
+            <button class="btn btn-success" onclick="saveOrderToSheet()">Pay</button>
+
+        </div>
+    </div>
+
+    <!-- My Favorites Tab -->
+    <div id="favorites" class="tab-content">
+        <h3>My Favorites</h3>
+        <div class="row g-3" id="favoritesGrid"></div>
+    </div>
+
+    <!-- Payment Tab -->
+    <div id="payment" class="tab-content">
+        <h3>Payment</h3>
+        <p>Choose your payment method.</p>
+        <button class="btn btn-warning" onclick="alert('Paying with Card')">Credit Card</button>
+        <button class="btn btn-info" onclick="alert('Paying with UPI')">UPI</button>
+    </div>
+
+    <!-- Add Product Popup -->
+    <div id="popup" class="popup" style="display: none;">
+        <button class="close-btn" onclick="togglePopup()">×</button>
+        <h4>Add New Product</h4>
+        <div class="mb-3">
+            <label>Product Name</label>
+            <input type="text" class="form-control" id="newProductNamePopup">
+        </div>
+        <div class="mb-3">
+            <label>Product Price</label>
+            <input type="number" class="form-control" id="newProductPricePopup">
+        </div>
+        <div class="mb-3">
+            <label>Upload Image</label>
+            <input type="file" class="form-control" onchange="previewImage(this)">
+            <img id="imagePreviewPopup" src="" class="img-fluid mt-2" style="max-height: 150px; display: none;">
+        </div>
+        <button type="button" class="btn btn-success" onclick="addNewProduct()">Add Product</button>
+        <button type="button" class="btn btn-secondary mt-2" onclick="togglePopup()">Cancel</button>
+    </div>
+
+    <!-- Edit Order Popup -->
+    <div id="editPopup" class="popup" style="display: none;">
+        <button class="close-btn" onclick="toggleEditPopup()">×</button>
+        <h4>Edit Order Item</h4>
+        <div class="mb-3">
+            <label>Product Name</label>
+            <input type="text" class="form-control" id="editProductName" readonly>
+        </div>
+        <div class="mb-3">
+            <label>Quantity</label>
+            <input type="number" class="form-control" id="editProductQuantity" min="1">
+        </div>
+        <button type="button" class="btn btn-success" onclick="saveEditOrder()">Save</button>
+        <button type="button" class="btn btn-secondary mt-2" onclick="toggleEditPopup()">Cancel</button>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        
+        const popup = document.getElementById("popup");
+        const editPopup = document.getElementById("editPopup");
+        const sidebar = document.getElementById("sidebar");
+
+        function side_Button() {
+            popup.style.display = "block";
+            popup.classList.add('active');
+            document.getElementById('overlay').classList.add('active');
+            sidebar.classList.remove('active');
+        }
+
+        const popup_t = document.getElementById("popup_t");
+        function side_Button_to() {
+            popup_t.style.display = "block";
+            popup_t.classList.add('active');
+        }
+
+        // Define products
+        let productsList = [
+            { name: 'Idly', price: 25, image: 'images/idly.png' },
+            { name: 'Dosa', price: 35, image: 'images/anil-sharma-S6WyKp5jdkQ-unsplash.jpg' },
+            { name: 'Pongal', price: 30, image: 'images/pongal.png' },
+            { name: 'Upma', price: 30, image: 'images/upma.png' },
+            { name: 'Poori', price: 35, image: 'images/Poori.png' },
+            { name: 'Masal Dosa', price: 40, image: 'images/delicious-indian-dosa-composition.jpg' }
+        ];
+
+        let orderList = [];
+        let favoritesList = [];
+        let currentEditIndex = null;
+
+        function addToOrder(name, price) {
+            const existingItem = orderList.find(item => item.name === name);
+            if (existingItem) {
+                existingItem.quantity += 1;
+            } else {
+                orderList.push({ name: name, price: price, quantity: 1 });
+            }
+            renderOrder();
+            updateOrderCount();
+        }
+
+        function updateOrderCount() {
+            const orderButton1 = document.getElementById('orderCount');
+            const orderButton2 = document.getElementById('orderCount2');
+            const orderButtonSidebar = document.getElementById('orderCountSidebar');
+            let itemCount = orderList.reduce((sum, item) => sum + item.quantity, 0);
+            orderButton1.textContent = itemCount;
+            orderButton2.textContent = itemCount;
+            if (orderButtonSidebar) orderButtonSidebar.textContent = itemCount;
+        }
+
+        function renderOrder() {
+            let orderDiv = document.getElementById('orderlist');
+            let total = 0;
+
+            if (orderList.length === 0) {
+                orderDiv.innerHTML = '<p>No items in the order.</p>';
+                document.getElementById('total').innerText = 'Total: ₹0';
+                return;
+            }
+
+            let tableHTML = `
+                <table class="table table-bordered">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>S.No.</th>
+                            <th class = "th-de">Product Name</th>
+                            <th class="th-me" style="display: none;">Product</th>
+                            <th>Quantity</th>
+                            <th>Total Price</th>
+                            <th class ="actopns">Actions</th>
+                        </tr>
+                    </thead>
+                <tbody>
+            `;
+
+            orderList.forEach((item, index) => {
+    let itemTotal = item.price * item.quantity;
+    total += itemTotal;
+    tableHTML += `
+<tr>
+    <td>${index + 1}</td>
+    <td>${item.name}</td>
+    <td style="text-align: center; font-weight: bold;">${item.quantity}</td>
+    <td>₹${itemTotal.toFixed(2)}</td>
+    <td class="action-buttons">
+        <!-- Edit Button -->
+        <i class="far fa-edit" style="font-size:24px;" onclick="editOrder(${index})"></i>
+        
+        <!-- Delete Button -->
+        <i class="material-icons" style="font-size:24px;" onclick="deleteOrder(${index})">&#xe872;</i>
+    </td>
+</tr>
+    `;
+});
+
+            tableHTML += `
+                    </tbody>
+                </table>
+            `;
+
+            orderDiv.innerHTML = tableHTML;
+            document.getElementById('total').innerText = 'Total: ₹' + total;
+        }
+
+        function editOrder(index) {
+            currentEditIndex = index;
+            const item = orderList[index];
+            document.getElementById('editProductName').value = item.name;
+            document.getElementById('editProductQuantity').value = item.quantity;
+            toggleEditPopup();
+        }
+
+        function saveEditOrder() {
+            if (currentEditIndex !== null) {
+                const quantity = parseInt(document.getElementById('editProductQuantity').value);
+                if (quantity >= 1) {
+                    orderList[currentEditIndex].quantity = quantity;
+                    renderOrder();
+                    updateOrderCount();
+                    toggleEditPopup();
+                } else {
+                    alert('Quantity must be at least 1!');
+                }
+            }
+        }
+
+        function deleteOrder(index) {
+            orderList.splice(index, 1);
+            renderOrder();
+            updateOrderCount();
+        }
+
+        function clearOrder() {
+            orderList = [];
+            renderOrder();
+            updateOrderCount();
+        }
+
+        function switchTab(tabId) {
+            const tabs = document.querySelectorAll('.tab-content');
+            tabs.forEach(tab => tab.classList.remove('active'));
+            const tabButtons = document.querySelectorAll('.tab');
+            tabButtons.forEach(button => button.classList.remove('active'));
+            const mobileNavItems = document.querySelectorAll('.mobile-nav-item');
+            mobileNavItems.forEach(item => item.classList.remove('active'));
+            const sidebarItems = document.querySelectorAll('.sidebar a');
+            sidebarItems.forEach(item => item.classList.remove('active'));
+
+            document.getElementById(tabId).classList.add('active');
+            document.querySelector(`.tab[data-tab="${tabId}"]`)?.classList.add('active');
+            document.querySelector(`.mobile-nav-item[data-tab="${tabId}"]`)?.classList.add('active');
+            document.querySelector(`.sidebar a[data-tab="${tabId}"]`)?.classList.add('active');
+        }
+
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('overlay');
+            const popup = document.getElementById('popup');
+            const editPopup = document.getElementById('editPopup');
+
+            if (popup.classList.contains('active') || editPopup.classList.contains('active')) {
+                popup.classList.remove('active');
+                editPopup.classList.remove('active');
+                overlay.classList.remove('active');
+            } else {
+                sidebar.classList.toggle('active');
+                overlay.classList.toggle('active');
+            }
+        }
+
+        function togglePopup() {
+            const popup = document.getElementById('popup');
+            const overlay = document.getElementById('overlay');
+            const sidebar = document.getElementById('sidebar');
+            const editPopup = document.getElementById('editPopup');
+
+            if (sidebar.classList.contains('active') || editPopup.classList.contains('active')) {
+                sidebar.classList.remove('active');
+                editPopup.classList.remove('active');
+                overlay.classList.remove('active');
+            } else {
+                popup.classList.toggle('active');
+                overlay.classList.toggle('active');
+            }
+        }
+
+        function toggleEditPopup() {
+            const editPopup = document.getElementById('editPopup');
+            const overlay = document.getElementById('overlay');
+            const sidebar = document.getElementById('sidebar');
+            const popup = document.getElementById('popup');
+
+            if (sidebar.classList.contains('active') || popup.classList.contains('active')) {
+                sidebar.classList.remove('active');
+                popup.classList.remove('active');
+                overlay.classList.remove('active');
+            } else {
+                editPopup.classList.toggle('active');
+                overlay.classList.toggle('active');
+            }
+        }
+
+        function previewImage(input) {
+            const preview = document.getElementById('imagePreviewPopup');
+            const file = input.files[0];
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                preview.src = e.target.result;
+                preview.style.display = 'block';
+            };
+            if (file) {
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function addNewProduct() {
+            const nameInput = document.getElementById('newProductNamePopup');
+            const priceInput = document.getElementById('newProductPricePopup');
+            const preview = document.getElementById('imagePreviewPopup');
+
+            const name = nameInput.value.trim();
+            const price = parseFloat(priceInput.value);
+            const imgSrc = preview.src;
+
+            if (name && !isNaN(price) && imgSrc && imgSrc !== window.location.href) {
+                const newProduct = {
+                    name: name,
+                    price: price,
+                    image: imgSrc
+                };
+
+                productsList.push(newProduct);
+                saveProductsToStorage();
+                renderProducts();
+                renderFavorites();
+
+                nameInput.value = '';
+                priceInput.value = '';
+                preview.src = '';
+                preview.style.display = 'none';
+                togglePopup();
+            } else {
+                alert('Please fill all fields and select an image!');
+            }
+        }
+
+        function saveProductsToStorage() {
+            localStorage.setItem('productsList', JSON.stringify(productsList));
+        }
+
+        function saveFavoritesToStorage() {
+            localStorage.setItem('favoritesList', JSON.stringify(favoritesList));
+        }
+
+        function loadProductsFromStorage() {
+            const storedProducts = localStorage.getItem('productsList');
+            if (storedProducts) {
+                productsList = JSON.parse(storedProducts);
+            }
+        }
+
+        function loadFavoritesFromStorage() {
+            const storedFavorites = localStorage.getItem('favoritesList');
+            if (storedFavorites) {
+                favoritesList = JSON.parse(storedFavorites);
+            }
+        }
+
+        function toggleFavorite(name) {
+            const index = favoritesList.indexOf(name);
+            if (index === -1) {
+                favoritesList.push(name);
+            } else {
+                favoritesList.splice(index, 1);
+            }
+            saveFavoritesToStorage();
+            renderProducts();
+            renderFavorites();
+        }
+
+        function renderProducts() {
+            const productGrid = document.getElementById('productGrid');
+            if (!productGrid) return;
+
+            productGrid.innerHTML = '';
+
+            productsList.forEach(product => {
+                const isFavorited = favoritesList.includes(product.name);
+                const productDiv = document.createElement('div');
+                productDiv.classList.add('col-6', 'col-md-4', 'col-lg-3');
+                productDiv.innerHTML = `
+                    <div class="product-card" onclick="addToOrder('${product.name}', ${product.price})">
+                        <img src="${product.image}" alt="${product.name}">
+                        <span class="favorite-icon ${isFavorited ? 'favorited' : ''}" onclick="event.stopPropagation(); toggleFavorite('${product.name}')">★</span>
+                        <div class="mt-2">${product.name}<br><strong>₹${product.price}</strong></div>
+                    </div>
+                `;
+                productGrid.appendChild(productDiv);
+            });
+        }
+
+        function renderFavorites() {
+            const favoritesGrid = document.getElementById('favoritesGrid');
+            if (!favoritesGrid) return;
+
+            favoritesGrid.innerHTML = '';
+
+            const favoriteProducts = productsList.filter(product => favoritesList.includes(product.name));
+
+            if (favoriteProducts.length === 0) {
+                favoritesGrid.innerHTML = '<p>No favorite products.</p>';
+                return;
+            }
+
+            favoriteProducts.forEach(product => {
+                const productDiv = document.createElement('div');
+                productDiv.classList.add('col-6', 'col-md-4', 'col-lg-3');
+                productDiv.innerHTML = `
+                    <div class="product-card" onclick="addToOrder('${product.name}', ${product.price})">
+                        <img src="${product.image}" alt="${product.name}">
+                        <span class="favorite-icon favorited" onclick="event.stopPropagation(); toggleFavorite('${product.name}')">★</span>
+                        <div class="mt-2">${product.name}<br><strong>₹${product.price}</strong></div>
+                    </div>
+                `;
+                favoritesGrid.appendChild(productDiv);
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadProductsFromStorage();
+            loadFavoritesFromStorage();
+            renderProducts();
+            renderFavorites();
+            updateOrderCount();
+        });
+
+
+function saveOrderToSheet() {
+    if (orderList.length === 0) {
+        alert('No order to save!');
+        return;
+    }
+
+    let savedOrders = JSON.parse(localStorage.getItem('savedOrders')) || [];
+    
+    const newOrder = {
+        id: Date.now(),  // Unique ID
+        orderList: [...orderList],  // Deep copy
+        totalAmount: orderList.reduce((sum, item) => sum + (item.price * item.quantity), 0),
+        date: new Date().toLocaleString()  // Save date and time
+    };
+
+    savedOrders.push(newOrder);
+    localStorage.setItem('savedOrders', JSON.stringify(savedOrders));
+
+    alert('Order saved successfully!');
+    clearOrder();  // Clear after saving
+}
+
+
+</script>
+</body>
+</html>
+
+
+<!-- coad by pay_to_popup  -->
+<div class="overlay_two" id="pay_to_popup_over"></div>
+
+
+
+<div id="popup_t" class="popup" style="display: none;">
+    <h2>payment method</h2>
+    <hr>
+    <button class="btn btn-warning" onclick="alert('Paying with Card')">Credit Card</button>
+    <button class="btn btn-info" onclick="alert('Paying with UPI')">UPI</button>
+    <button class="btn btn-primary" >Chase on delery</button>
+</div>
+

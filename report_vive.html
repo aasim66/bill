@@ -1,0 +1,249 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>POS Billing - Sales Report</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"/>
+  <style>
+    body {
+      background-color: #f8f9fa;
+    }
+    h1 {
+      text-align: center;
+      margin: 20px 0;
+    }
+    .filter-section {
+      background: #ffffff;
+      padding: 15px;
+      margin-bottom: 20px;
+      border-radius: 6px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .total {
+      text-align: right;
+      font-weight: bold;
+      font-size: 1.2rem;
+      margin-top: 20px;
+    }
+    .table-hover tr {
+      cursor: pointer;
+    }
+    /* Print styles */
+    @media print {
+      body * {
+        visibility: hidden;
+      }
+      #transactionModal * {
+        visibility: visible;
+      }
+      #transactionModal {
+        position: absolute;
+        left: 0;
+        top: 0;
+      }
+    }
+  </style>
+</head>
+<body>
+  <a href="expense.html"> <-- back expance</a>
+  <div class="container my-4">
+    <h1>Sales Report</h1>
+
+    <div class="filter-section row align-items-end">
+      <div class="col-md-4">
+        <label for="startDate" class="form-label">Start Date:</label>
+        <input type="date" id="startDate" class="form-control" />
+      </div>
+      <div class="col-md-4">
+        <label for="endDate" class="form-label">End Date:</label>
+        <input type="date" id="endDate" class="form-control" />
+      </div>
+      <div class="col-md-4">
+        <button class="btn btn-success w-100" onclick="filterTransactions()">Filter</button>
+      </div>
+    </div>
+
+    <table class="table table-bordered table-hover">
+      <thead class="table-primary">
+        <tr>
+          <th>S.No</th>
+          <th>Date</th>
+          <th>Total Amount</th>
+        </tr>
+      </thead>
+      <tbody id="reportBody"></tbody>
+    </table>
+
+    <div class="total" id="totalAmount">Total: ₹0.00</div>
+
+    <div class="text-center mt-4">
+      <button class="btn btn-primary" onclick="window.location.href='index.html'">Back to POS</button>
+      <button class="btn btn-info" onclick="showHRModal()">HR Info</button>
+    </div>
+  </div>
+
+  <!-- Modal for Transaction Details -->
+  <div class="modal fade" id="transactionModal" tabindex="-1" aria-labelledby="transactionModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="transactionModalLabel">Transaction Details</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <p><strong>Date:</strong> <span id="modalDate"></span></p>
+          <p><strong>Time:</strong> <span id="modalTime"></span></p>
+          <h6>Items:</h6>
+          <ul id="modalItems"></ul>
+          <p><strong>Total Amount:</strong> <span id="modalTotal"></span></p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+          <button type="button" class="btn btn-info" onclick="printTransaction()">Print</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal for HR Info -->
+  <div class="modal fade" id="hrModal" tabindex="-1" aria-labelledby="hrModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="hrModalLabel">HR Information</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <p><strong>Employee ID:</strong> <span id="hrEmployeeId">12345</span></p>
+          <p><strong>Name:</strong> <span id="hrName">John Doe</span></p>
+          <p><strong>Designation:</strong> <span id="hrDesignation">Manager</span></p>
+          <p><strong>Joining Date:</strong> <span id="hrJoiningDate">01/01/2020</span></p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    function saveTransaction(transaction) {
+      let transactions = JSON.parse(localStorage.getItem('transactions')) || [];
+      transactions.push(transaction);
+      localStorage.setItem('transactions', JSON.stringify(transactions));
+    }
+
+    function loadTransactions() {
+      let transactions = JSON.parse(localStorage.getItem('transactions')) || [];
+      if (transactions.length === 0) {
+        const savedOrders = JSON.parse(localStorage.getItem('savedOrders')) || [];
+        transactions = savedOrders.map((order, idx) => ({
+          date: order.date,
+          id: order.id || `ORD-${idx + 1}`,
+          customer: order.customer || 'N/A',
+          items: order.items || order.orderList || [],
+          total: order.totalAmount || order.total || 0
+        }));
+      }
+      return transactions;
+    }
+
+    function displayTransactions(transactions) {
+      const reportBody = document.getElementById('reportBody');
+      reportBody.innerHTML = '';
+      let total = 0;
+
+      if (transactions.length === 0) {
+        reportBody.innerHTML = '<tr><td colspan="6" class="text-center">No transactions found.</td></tr>';
+      } else {
+        transactions.forEach((transaction, index) => {
+          const items = transaction.items.map(item => `${item.name}  ${item.quantity || 1}`).join(', ');
+          const date = new Date(transaction.date);
+          const time = date.toLocaleTimeString();
+          const formattedDate = date.toLocaleDateString();
+          const totalAmount = parseFloat(transaction.total || 0);
+
+          reportBody.innerHTML += `
+            <tr data-index="${index}">
+              <td>${index + 1}</td>
+              <td>${formattedDate} ${time}</td>
+              <td>₹${totalAmount.toFixed(2)}</td>
+            </tr>
+          `;
+
+          total += totalAmount;
+        });
+
+        const rows = reportBody.querySelectorAll('tr');
+        rows.forEach(row => {
+          row.addEventListener('click', () => {
+            const index = row.getAttribute('data-index');
+            if (index !== null) {
+              showTransactionDetails(transactions[index]);
+            }
+          });
+        });
+      }
+
+      document.getElementById('totalAmount').textContent = `Total: ₹${total.toFixed(2)}`;
+    }
+
+    function showTransactionDetails(transaction) {
+      const date = new Date(transaction.date);
+      document.getElementById('modalDate').textContent = date.toLocaleDateString();
+      document.getElementById('modalTime').textContent = date.toLocaleTimeString();
+      document.getElementById('modalTotal').textContent = `₹${parseFloat(transaction.total || 0).toFixed(2)}`;
+
+      const modalItems = document.getElementById('modalItems');
+      modalItems.innerHTML = '';
+      transaction.items.forEach(item => {
+        const li = document.createElement('div');
+        li.innerHTML = `${item.name} x${item.quantity || 1} - ₹${(item.price || 0).toFixed(2)} <hr>`;
+        modalItems.appendChild(li);
+      });
+
+      const modal = new bootstrap.Modal(document.getElementById('transactionModal'));
+      modal.show();
+    }
+
+    function printTransaction() {
+      const modalContent = document.getElementById('transactionModal').innerHTML;
+      const printWindow = window.open('', '', 'height=600,width=800');
+      printWindow.document.write('<html><head><title>Transaction Details</title></head><body>');
+      printWindow.document.write(modalContent);
+      printWindow.document.write('</body></html>');
+      printWindow.document.close();
+      printWindow.print();
+    }
+
+    function filterTransactions() {
+      const startDateInput = document.getElementById('startDate').value;
+      const endDateInput = document.getElementById('endDate').value;
+      const startDate = startDateInput ? new Date(startDateInput) : null;
+      const endDate = endDateInput ? new Date(endDateInput) : null;
+
+      const transactions = loadTransactions();
+
+      const filtered = transactions.filter(transaction => {
+        const transactionDate = new Date(transaction.date);
+        return (!startDate || transactionDate >= startDate) &&
+               (!endDate || transactionDate <= endDate);
+      });
+
+      displayTransactions(filtered);
+    }
+
+    function showHRModal() {
+      const modal = new bootstrap.Modal(document.getElementById('hrModal'));
+      modal.show();
+    }
+
+    window.onload = () => {
+      displayTransactions(loadTransactions());
+    };
+  </script>
+</body>
+</html>
