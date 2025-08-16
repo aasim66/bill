@@ -1,0 +1,717 @@
+
+
+
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Order Reports</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Font Awesome (latest version for icons) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+    <!-- Google Material Icons -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+    <style>
+        /* fallback */
+        i {
+            cursor: pointer;
+        }
+
+        :root {
+            --bs-breakpoint-xs: 0;
+            --bs-breakpoint-sm: 576px;
+            --bs-breakpoint-md: 768px;
+            --bs-breakpoint-lg: 992px;
+            --bs-breakpoint-xl: 1200px;
+            --bs-breakpoint-xxl: 1400px;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            padding: 10px;
+        }
+
+        .tab {
+            display: inline-block;
+            margin: 0 10px;
+            cursor: pointer;
+            padding: 10px 20px;
+            background-color: #ccc;
+        }
+
+        .tab.active {
+            background-color: #0bbbbb;
+            color: white;
+        }
+
+        .orderlist {
+            margin-top: 20px;
+        }
+
+        .total {
+            font-size: 24px;
+            font-weight: bold;
+            text-align: right;
+            margin-top: 20px;
+        }
+
+        .buttons {
+            margin-top: 20px;
+        }
+
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .product-card img {
+            width: 150px;
+            height: 150px;
+            object-fit: cover;
+            border-radius: 50%;
+            margin: 0 auto;
+            display: block;
+        }
+
+        .product-card {
+            background-color: #0bbbbb;
+            color: white;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            text-align: center;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            user-select: none;
+            position: relative;
+        }
+
+        .product-card:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .product-card:active {
+            transform: scale(0.95);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+        }
+
+        .orderitem {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+        }
+
+        .favorite-icon {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-size: 24px;
+            cursor: pointer;
+            color: #fff;
+        }
+
+        .favorite-icon.favorited {
+            color: #ffd700;
+        }
+
+        /* Hamburger Menu */
+        .hamburger {
+            font-size: 24px;
+            cursor: pointer;
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            z-index: 1100;
+            display: block;
+        }
+
+        /* Popup */
+        .popup {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            width: 90%;
+            max-width: 350px;
+            background-color: white;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            border-radius: 10px;
+            padding: 20px;
+            z-index: 1000;
+            opacity: 0;
+            transition: transform 0.3s ease, opacity 0.3s ease;
+        }
+
+        .popup.active {
+            transform: translate(-50%, -50%) scale(1);
+            opacity: 1;
+        }
+
+        .popup .close-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: none;
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+        }
+
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            z-index: 999;
+        }
+
+        .overlay.active {
+            display: block;
+        }
+
+        .overlay_two {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            z-index: 998;
+        }
+
+        .overlay_two.active {
+            display: block;
+        }
+
+        /* Mobile Navigation Bar */
+        .mobile-nav {
+            display: none;
+            background-color: #f8f9fa;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .mobile-nav-item {
+            display: inline-block;
+            padding: 10px 15px;
+            cursor: pointer;
+            font-size: 16px;
+            color: #333;
+        }
+
+        .mobile-nav-item.active {
+            background-color: #0bbbbb;
+            color: white;
+            border-radius: 5px;
+        }
+
+        .mobile-nav-item:hover {
+            color: #000000;
+        }
+
+        /* Mobile Sidebar */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: -250px;
+            width: 250px;
+            height: 100%;
+            background-color: #0bbbbb;
+            color: white;
+            padding: 20px;
+            box-shadow: 2px 0 12px rgba(0, 0, 0, 0.2);
+            z-index: 1200;
+            transition: left 0.3s ease;
+        }
+
+        .sidebar.active {
+            left: 0;
+        }
+
+        .sidebar .close-btn {
+            font-size: 24px;
+            cursor: pointer;
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: none;
+            border: none;
+            color: white;
+        }
+
+        .sidebar a {
+            display: flex;
+            align-items: center;
+            margin: 20px 0;
+            color: white;
+            text-decoration: none;
+            font-size: 18px;
+        }
+
+        .sidebar a.active {
+            background-color: #088888;
+            padding: 10px;
+            border-radius: 5px;
+        }
+
+        .sidebar a:hover {
+            text-decoration: underline;
+        }
+
+        .sidebar hr {
+            border-top: 1px solid #ffffff44;
+        }
+
+        .sidebar .badge {
+            margin-left: 10px;
+            font-size: 12px;
+        }
+
+        @media (max-width: 600px) {
+            .hamburger {
+                display: block;
+            }
+
+            .tab {
+                display: none;
+            }
+
+            .mobile-nav {
+                display: block;
+            }
+
+            .product-card img {
+                width: 100px;
+                height: 100px;
+            }
+
+            .product-card {
+                padding: 0.5rem;
+                font-size: 14px;
+            }
+
+            .total {
+                font-size: 20px;
+            }
+
+            .add-product-btn {
+                position: fixed;
+                bottom: 20px;
+                right: 20px;
+                border-radius: 50%;
+                width: 50px;
+                height: 50px;
+                font-size: 24px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                z-index: 1000;
+            }
+
+            .or {
+                border: none;
+                color: white;
+                border-radius: 5px;
+                height: 40px;
+            }
+        }
+
+        #orderButton {
+            border: none;
+        }
+
+        #he {
+            margin-left: 30px;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 5px;
+        }
+
+        .action-buttons button {
+            padding: 5px 10px;
+            font-size: 14px;
+        }
+
+        #far-fa {
+            cursor: pointer;
+            display: none;
+        }
+
+        #button-side-bar-so-make-in-aasim {
+            width: 200px;
+            height: auto;
+        }
+
+        @media print {
+            @page {
+                size: 58mm auto;
+                margin: 5mm;
+            }
+
+            body, html {
+                margin: 0;
+                padding: 0;
+                background: #fff;
+                font-family: 'Courier New', Courier, monospace;
+                font-size: 11pt;
+                color: #000;
+            }
+
+            .all_he,
+            .mobile-nav,
+            .mb-3,
+            .actopns,
+            .hamburger,
+            .sidebar,
+            .overlay,
+            .mobile-nav-item,
+            .tab,
+            .buttons,
+            .action-buttons,
+            .popup {
+                display: none !important;
+            }
+
+            .report-container {
+                display: block !important;
+                width: 100%;
+                max-width: 300px;
+                margin: 20px auto;
+            }
+
+            .h4_hotal_name {
+                display: block !important;
+                text-align: center;
+                font-size: 16pt;
+                font-weight: bold;
+                text-transform: uppercase;
+                margin-bottom: 10px;
+            }
+
+            .report-table {
+                width: 100%;
+                margin-top: 10px;
+                border-collapse: collapse;
+            }
+
+            .report-table td, .report-table th {
+                border: 1px solid #000;
+                padding: 5px;
+                font-size: 11pt;
+                text-align: left;
+            }
+
+            .total {
+                text-align: right;
+                font-size: 14pt;
+                font-weight: bold;
+                margin-top: 10px;
+                border-top: 2px dashed #000;
+                padding-top: 5px;
+            }
+
+            .receipt-footer {
+                text-align: center;
+                font-size: 10pt;
+                margin-top: 10px;
+                border-top: 1px dashed #000;
+                padding-top: 5px;
+            }
+        }
+
+        .h4_hotal_name {
+            display: none;
+        }
+
+        .report-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        .report-table th, .report-table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+
+        .report-table th {
+            background-color: #0bbbbb;
+            color: white;
+        }
+
+        .report-table tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+
+        .report-table tr:hover {
+            background-color: #ddd;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Hamburger Menu -->
+    <div class="all_he">
+        <h2 class="mb-3" id="he">
+            <div class="hamburger" onclick="toggleSidebar()">☰</div> Order Reports
+        </h2>
+    </div>
+
+    <!-- Sidebar for Mobile -->
+    <div id="sidebar" class="sidebar">
+        <button class="close-btn" onclick="toggleSidebar()">×</button>
+        <h4>Menu</h4>
+        <hr>
+        <button type="button" class="btn btn-success" id="button-side-bar-so-make-in-aasim" onclick="window.location.href='index.html'">Add Item</button>
+        <button type="button" class="btn btn-success" id="button-side-bar-so-make-in-aasim" onclick="window.location.href='index.html'">POS</button>
+        <button type="button" class="btn btn-success" id="button-side-bar-so-make-in-aasim" onclick="window.location.reload()">Report</button>
+    </div>
+
+    <!-- Overlay for Sidebar and Popup -->
+    <div id="overlay" class="overlay" onclick="toggleSidebar(); toggleDetailsPopup();"></div>
+
+    <!-- Mobile Navigation Bar -->
+    <div class="mobile-nav">
+        <span class="mobile-nav-item active" data-tab="reports" onclick="window.location.reload()">Reports</span>
+    </div>
+
+    <!-- Desktop Tabs -->
+    <div class="mb-3">
+        <div class="tab active" data-tab="reports" onclick="window.location.reload()">Reports</div>
+    </div>
+
+    <!-- Report Content -->
+    <div id="reports" class="tab-content active">
+        <h4 class="h4_hotal_name">hotal aasim</h4>
+        <h3>Order Reports</h3>
+        <div class="report-container">
+            <table class="report-table" id="reportTable">
+                <thead>
+                    <tr>
+                        <th>Order ID</th>
+                        <th>Customer Name</th>
+                        <th>Date</th>
+                        <th>Total Amount</th>
+                        <th>Payment Method</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="reportTableBody"></tbody>
+            </table>
+        </div>
+        <div class="buttons mt-3">
+            <button class="btn btn-primary" onclick="print()">Print Reports</button>
+            <button class="btn btn-danger" onclick="clearReports()">Clear All Reports</button>
+        </div>
+    </div>
+
+    <!-- Order Details Popup -->
+    <div id="detailsPopup" class="popup" style="display: none;">
+        <button class="close-btn" onclick="toggleDetailsPopup()">×</button>
+        <h4>Order Details</h4>
+        <hr>
+        <style>
+            .popup {
+    width: 500px !important;
+    max-width: 500px !important;
+}
+
+        </style>
+        <div id="detailsContent"></div>
+        <!-- <button type="button" class="btn btn-secondary mt-2" onclick="toggleDetailsPopup()">Close</button> -->
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('overlay');
+            const detailsPopup = document.getElementById('detailsPopup');
+
+            if (detailsPopup.classList.contains('active')) {
+                detailsPopup.classList.remove('active');
+                detailsPopup.style.display = 'none';
+                overlay.classList.remove('active');
+            } else {
+                sidebar.classList.toggle('active');
+                overlay.classList.toggle('active');
+            }
+        }
+
+        function toggleDetailsPopup() {
+            const detailsPopup = document.getElementById('detailsPopup');
+            const overlay = document.getElementById('overlay');
+            const sidebar = document.getElementById('sidebar');
+
+            if (sidebar.classList.contains('active')) {
+                sidebar.classList.remove('active');
+                overlay.classList.remove('active');
+            } else {
+                detailsPopup.classList.toggle('active');
+                detailsPopup.style.display = detailsPopup.classList.contains('active') ? 'block' : 'none';
+                overlay.classList.toggle('active');
+            }
+        }
+
+        function renderReports() {
+            const reportTableBody = document.getElementById('reportTableBody');
+            const savedOrders = JSON.parse(localStorage.getItem('savedOrders')) || [];
+
+            if (savedOrders.length === 0) {
+                reportTableBody.innerHTML = '<tr><td colspan="6" style="text-align: center;">No orders found.</td></tr>';
+                return;
+            }
+
+            reportTableBody.innerHTML = '';
+
+            savedOrders.forEach((order, index) => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${order.id}</td>
+                    <td>${order.customerName}</td>
+                    <td>${order.date}</td>
+                    <td>₹${order.totalAmount.toFixed(2)}</td>
+                    <td>${order.paymentMethod || 'N/A'}</td>
+                    <td class="action-buttons">
+                        <i class="material-icons" style="font-size:24px;" onclick="showOrderDetails(${index})">visibility</i>
+                        <i class="material-icons" style="font-size:24px;" onclick="deleteOrder(${index})">delete</i>
+                    </td>
+                `;
+                reportTableBody.appendChild(row);
+            });
+        }
+
+        // function showOrderDetails(index) {
+        //     const savedOrders = JSON.parse(localStorage.getItem('savedOrders')) || [];
+        //     const order = savedOrders[index];
+        //     const detailsContent = document.getElementById('detailsContent');
+
+        //     if (order) {
+        //         detailsContent.innerHTML = `
+        //             <strong>Order ID:</strong> ${order.id}<br>
+        //             <strong>Customer:</strong> ${order.customerName}<br>
+        //             <strong>Date:</strong> ${order.date}<br>
+        //             <strong>Total Amount:</strong> ₹${order.totalAmount.toFixed(2)}<br>
+        //             <strong>Payment Method:</strong> ${order.paymentMethod || 'N/A'}<br>
+        //             <hr>
+        //             <strong>Items:</strong>
+        //             <ul class="list-group">
+        //                 ${order.orderList.map(item => `
+        //                     <li class="list-group-item">
+        //                         ${item.name} - Quantity: ${item.quantity} - Price: ₹${(item.price * item.quantity).toFixed(2)}
+        //                     </li>
+        //                 `).join('')}
+        //             </ul>
+        //         `;
+        //         toggleDetailsPopup();
+        //     }
+        // }
+
+                function showOrderDetails(index) {
+    const savedOrders = JSON.parse(localStorage.getItem('savedOrders')) || [];
+    const order = savedOrders[index];
+    const detailsContent = document.getElementById('detailsContent');
+
+    if (order) {
+        let itemsTable = `
+            <table class="table table-bordered table-striped">
+                <thead>
+                    <tr>
+                        <th>Item Name</th>
+                        <th>Price</th>
+                        <th>Qty</th>
+                        <th>Total</th>
+                    </tr>
+                </thead>
+                <tbody>
+        `;
+
+        let totalQty = 0;
+        let grandTotal = 0;
+
+        order.orderList.forEach(item => {
+            const itemTotal = item.price * item.quantity;
+            totalQty += item.quantity;
+            grandTotal += itemTotal;
+
+            itemsTable += `
+                <tr>
+                    <td>${item.name}</td>
+                    <td>${item.price.toFixed(2)}</td>
+                    <td>${item.quantity}</td>
+                    <td>${itemTotal.toFixed(2)}</td>
+                </tr>
+            `;
+        });
+
+        // Totals row
+        itemsTable += `
+            <tr>
+                <td><strong>Totals</strong></td>
+                <td></td>
+                <td><strong>${totalQty}</strong></td>
+                <td><strong>${grandTotal.toFixed(2)}</strong></td>
+            </tr>
+        `;
+
+        itemsTable += `</tbody></table>`;
+
+        detailsContent.innerHTML = `
+            <p><strong>Customer:</strong> ${order.customerName}</p>
+            <p><strong>Date:</strong> ${order.date}</p>
+            <hr>
+            <h5>Product Details</h5>
+            ${itemsTable}
+         
+        `;
+        toggleDetailsPopup();
+    }
+}
+
+        function deleteOrder(index) {
+            let savedOrders = JSON.parse(localStorage.getItem('savedOrders')) || [];
+            savedOrders.splice(index, 1);
+            localStorage.setItem('savedOrders', JSON.stringify(savedOrders));
+            renderReports();
+        }
+
+        function clearReports() {
+            if (confirm('Are you sure you want to clear all reports?')) {
+                localStorage.removeItem('savedOrders');
+                renderReports();
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            renderReports();
+        });
+    </script>
+</body>
+</html>
