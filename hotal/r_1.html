@@ -15,6 +15,7 @@
 
     <!-- Font Awesome (latest version for icons) -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
     <!-- Google Material Icons -->
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
@@ -336,6 +337,11 @@
                 border-radius: 5px;
                 height: 40px;
             }
+            .order_id{
+                display: none;
+            }
+   
+
         }
 
         #orderButton {
@@ -478,7 +484,7 @@
     <!-- Hamburger Menu -->
     <div class="all_he">
         <h2 class="mb-3" id="he">
-            <div class="hamburger" onclick="toggleSidebar()">☰</div> Order Reports
+            <div class="hamburger" onclick="toggleSidebar()">☰</div> 
         </h2>
     </div>
 
@@ -487,37 +493,45 @@
         <button class="close-btn" onclick="toggleSidebar()">×</button>
         <h4>Menu</h4>
         <hr>
-        <button type="button" class="btn btn-success" id="button-side-bar-so-make-in-aasim" onclick="window.location.href='index.html'">Add Item</button>
-        <button type="button" class="btn btn-success" id="button-side-bar-so-make-in-aasim" onclick="window.location.href='index.html'">POS</button>
+        <button type="button" class="btn btn-success" id="button-side-bar-so-make-in-aasim" onclick="window.location.href='billing.html'">billing</button>
+        <!-- <button type="button" class="btn btn-success" id="button-side-bar-so-make-in-aasim" onclick="window.location.href='index.html'">POS</button> -->
         <button type="button" class="btn btn-success" id="button-side-bar-so-make-in-aasim" onclick="window.location.reload()">Report</button>
+        
+        <button type="button" class="btn btn-danger" id="button-side-bar-so-make-in-aasim" onclick="window.location.href='login.html'">Logout</button>
+
     </div>
 
     <!-- Overlay for Sidebar and Popup -->
     <div id="overlay" class="overlay" onclick="toggleSidebar(); toggleDetailsPopup();"></div>
 
     <!-- Mobile Navigation Bar -->
-    <div class="mobile-nav">
+    <!-- <div class="mobile-nav">
         <span class="mobile-nav-item active" data-tab="reports" onclick="window.location.reload()">Reports</span>
-    </div>
+    </div> -->
 
     <!-- Desktop Tabs -->
-    <div class="mb-3">
-        <div class="tab active" data-tab="reports" onclick="window.location.reload()">Reports</div>
-    </div>
+<div class="mb-3 d-flex align-items-center" style="gap:10px; max-width:500px;">
+    <input type="text" id="searchCustomer" class="form-control flex-grow-1" placeholder="Search by Customer Name..." onkeyup="searchCustomer()">
+    <button class="btn btn-success flex-shrink-0" onclick="exportToExcel()">Export to Excel</button>
+</div>
+
+
 
     <!-- Report Content -->
     <div id="reports" class="tab-content active">
-        <h4 class="h4_hotal_name">hotal aasim</h4>
-        <h3>Order Reports</h3>
+        <h4 class="h4_hotal_name">hotal</h4>
+        
         <div class="report-container">
             <table class="report-table" id="reportTable">
                 <thead>
                     <tr>
-                        <th>Order ID</th>
+                        <th class="order_id">Order ID</th>
                         <th>Customer Name</th>
-                        <th>Date</th>
+                        <th class="order_id" >Date</th>
                         <th>Total Amount</th>
-                        <th>Payment Method</th>
+                        
+
+                        <th class="order_id" >Payment Method</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
@@ -579,6 +593,19 @@
                 overlay.classList.toggle('active');
             }
         }
+function searchCustomer() {
+    const input = document.getElementById("searchCustomer").value.toLowerCase();
+    const table = document.getElementById("reportTable");
+    const rows = table.getElementsByTagName("tr");
+
+    for (let i = 1; i < rows.length; i++) { // start from 1 to skip header
+        const customerCell = rows[i].getElementsByTagName("td")[1]; // Customer Name column
+        if (customerCell) {
+            const customerName = customerCell.textContent || customerCell.innerText;
+            rows[i].style.display = customerName.toLowerCase().includes(input) ? "" : "none";
+        }
+    }
+}
 
         function renderReports() {
             const reportTableBody = document.getElementById('reportTableBody');
@@ -594,11 +621,11 @@
             savedOrders.forEach((order, index) => {
                 const row = document.createElement('tr');
                 row.innerHTML = `
-                    <td>${order.id}</td>
+                    <td class="order_id" >${order.id}</td>
                     <td>${order.customerName}</td>
-                    <td>${order.date}</td>
+                    <td class="order_id" >${order.date}</td>
                     <td>₹${order.totalAmount.toFixed(2)}</td>
-                    <td>${order.paymentMethod || 'N/A'}</td>
+                    <td class="order_id">${order.paymentMethod || 'Gpay'}</td>
                     <td class="action-buttons">
                         <i class="material-icons" style="font-size:24px;" onclick="showOrderDetails(${index})">visibility</i>
                         <i class="material-icons" style="font-size:24px;" onclick="deleteOrder(${index})">delete</i>
@@ -633,6 +660,40 @@
         //         toggleDetailsPopup();
         //     }
         // }
+        function exportToExcel() {
+    const savedOrders = JSON.parse(localStorage.getItem('savedOrders')) || [];
+
+    if (savedOrders.length === 0) {
+        alert("No reports to export!");
+        return;
+    }
+
+    // Prepare Excel data
+    let excelData = [
+        ["Order ID", "Customer Name", "Date", "Total Amount", "Payment Method"]
+    ];
+
+    savedOrders.forEach(order => {
+        excelData.push([
+            order.id,
+            order.customerName,
+            order.date,
+            order.totalAmount,
+            order.paymentMethod || "Gpay"
+        ]);
+    });
+
+    // Convert to worksheet
+    const worksheet = XLSX.utils.aoa_to_sheet(excelData);
+
+    // Create workbook and append worksheet
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Reports");
+
+    // Export to Excel
+    XLSX.writeFile(workbook, "order_reports.xlsx");
+}
+
 
                 function showOrderDetails(index) {
     const savedOrders = JSON.parse(localStorage.getItem('savedOrders')) || [];
