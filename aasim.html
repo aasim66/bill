@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>80mm Receipt Print</title>
+<style>
+  body { font-family: monospace; font-size: 12px; margin: 0; }
+
+  /* Thermal printer 80mm page size */
+  @media print {
+    @page {
+      size: 80mm auto;   /* width fixed, height auto grows */
+      margin: 3mm;       /* small margin for paper */
+    }
+    body { margin: 0; }
+    .noprint { display: none; } /* hide buttons when printing */
+  }
+
+  .receipt { width: 80mm; padding: 3mm; }
+  .center { text-align: center; }
+  .line { border-top: 1px dashed #000; margin: 4px 0; }
+  .kv { display: flex; justify-content: space-between; }
+  table { width: 100%; border-collapse: collapse; }
+  td, th { padding: 2px 0; }
+  .total { font-weight: bold; }
+</style>
+</head>
+<body>
+
+<div class="noprint" style="margin:10px;">
+  <button onclick="window.print()">🧾 Print Receipt</button>
+</div>
+
+<div class="receipt">
+  <div class="center">
+    <h3 style="margin:0;">ACME STORE</h3>
+    <small>22 Market Street, City</small><br>
+    <small>Ph: +91 98765 43210</small>
+  </div>
+
+  <div class="line"></div>
+
+  <div class="kv"><span>Invoice:</span><span>INV-1001</span></div>
+  <div class="kv"><span>Date:</span><span>24-08-2025</span></div>
+  <div class="kv"><span>Customer:</span><span>Mr. Kumar</span></div>
+
+  <div class="line"></div>
+
+  <table>
+    <tr><th align="left">Item</th><th align="right">Qty</th><th align="right">Amt</th></tr>
+    <tr><td>Rice 10kg</td><td align="right">1</td><td align="right">650.00</td></tr>
+    <tr><td>Oil 1L</td><td align="right">2</td><td align="right">280.00</td></tr>
+  </table>
+
+  <div class="line"></div>
+
+  <div class="kv total"><span>Total</span><span>930.00</span></div>
+
+  <div class="line"></div>
+  <div class="center">Thank you! Visit again</div>
+</div>
+
+</body>
+</html>
